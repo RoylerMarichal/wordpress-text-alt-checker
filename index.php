@@ -1,17 +1,16 @@
 <?php
 /*
-Plugin Name: Corretor de texto alternativo
-Description: Plugin para Analisar e corrigir textos alternativos de imagens no conteúdo de posts e páginas.
+Plugin Name: Alt Text Checker
+Description: This plugin allows you to analyze all the images that are being used in posts and products to find all the images and show you the ones that do not have alternative text, giving you the possibility to fix it on the spot.
 Version: 1.0
-Author: Royler Marichal Carrazana
-Text Domain: corretor-textos-alternativos
+Author: Royler Marichal Carrazana @RoylerMarichal
+Text Domain: text-alt-checker
 */
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-// Crear tabla al activar el plugin
 function cta_create_table()
 {
     global $wpdb;
@@ -56,12 +55,11 @@ function cta_enqueue_scripts($hook)
 
 add_action('admin_enqueue_scripts', 'cta_enqueue_scripts');
 
-// Añadir menú al sidebar de WordPress
 function cta_add_menu()
 {
     add_menu_page(
-        __('Corretor de Textos Alternativos', 'corretor-textos-alternativos'),
-        __('Corretor Textos Alt', 'corretor-textos-alternativos'),
+        __('Text Alt Checker', 'corretor-textos-alternativos'),
+        __('Alt Text Cheker', 'corretor-textos-alternativos'),
         'manage_options',
         'corretor-textos-alternativos',
         'cta_admin_page',
@@ -71,11 +69,9 @@ function cta_add_menu()
 
 add_action('admin_menu', 'cta_add_menu');
 
-// Función para mostrar el contenido del tab "Escanear"
 function ilp_display_scan_tab() {
     global $wpdb;
 
-    // Contar imágenes en uso y sin texto alternativo
     $query_images_in_use = "
         SELECT COUNT(DISTINCT p.ID)
         FROM {$wpdb->prefix}posts p
@@ -119,66 +115,60 @@ function ilp_display_scan_tab() {
     $total_images_without_alt_text = $wpdb->get_var($query_images_without_alt_text);
 
     ?>
-    <h2>Encontre imagens</h2>
-    <p>Clique no botão para localizar e salvar as imagens em uso::</p>
-    <p>Total de imagens em uso: <?php echo $total_images_in_use; ?></p>
-    <p>Total de imagens sem texto alternativo: <?php echo $total_images_without_alt_text; ?></p>
+    <h2>Find images</h2>
+    <p>Click the button to find and save the images in use:</p>
+    <p>Total images in use: <?php echo $total_images_in_use; ?></p>
+    <p>Total images without alt text: <?php echo $total_images_without_alt_text; ?></p>
 
     <form method="post" action="">
         <input type="hidden" name="ilp_scan_images" value="1">
-        <?php submit_button('Encontre imagens'); ?>
+        <?php submit_button('Find images'); ?>
     </form>
     <?php
-    // Manejar el escaneo al hacer clic en el botón
     if (isset($_POST['ilp_scan_images'])) {
         ilp_scan_and_save_images();
     }
 }
 
 
-// Página principal del plugin
-// Página principal del plugin
 function cta_admin_page()
 {
     global $wpdb;
     $table_name = $wpdb->prefix . 'cta_images';
 
-    // Consulta para obtener el número total de imágenes y las que no tienen texto alternativo
     $total_images = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
     $total_images_without_alt_text = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE alt_text = ''");
 
 ?>
     <div class="wrap">
-        <h1><?php _e('Corretor de Textos Alternativos / Nilko Marketing :)', 'corretor-textos-alternativos'); ?></h1>
+        <h1><?php _e('Text Alt Checker', 'corretor-textos-alternativos'); ?></h1>
         <h2 class="nav-tab-wrapper">
-            <a href="#scan-tab" class="nav-tab nav-tab-active" data-tab="scan-tab"><?php _e('Analisar Imagens', 'corretor-textos-alternativos'); ?></a>
-            <a href="#results-tab" class="nav-tab" data-tab="results-tab"><?php _e('Resultados', 'corretor-textos-alternativos'); ?></a>
+            <a href="#scan-tab" class="nav-tab nav-tab-active" data-tab="scan-tab"><?php _e('Analyze Images', 'corretor-textos-alternativos'); ?></a>
+            <a href="#results-tab" class="nav-tab" data-tab="results-tab"><?php _e('Results', 'corretor-textos-alternativos'); ?></a>
         </h2>
         <div id="scan-tab-content" class="tab-content active">
             <button id="cta-scan-button" class="button   button-primary" style="margin: 10px;"><?php _e('Analisar', 'corretor-textos-alternativos'); ?></button>
             <p id="cta-scan-status"></p>
         </div>
         <div id="results-tab-content" class="tab-content">
-            <p>Total de imagens: <?php echo $total_images; ?></p>
-            <p>Total de imagens sem texto alternativo: <?php echo $total_images_without_alt_text; ?></p>
+            <p>Total images: <?php echo $total_images; ?></p>
+            <p>Total images without alt text: <?php echo $total_images_without_alt_text; ?></p>
             <label>
-                <input type="checkbox" id="filter-no-alt" style="margin: 10px;"> Mostrar apenas imagens sem texto alternativo
+                <input type="checkbox" id="filter-no-alt" style="margin: 10px;"> Show only images without alt text
             </label>
             <table class="widefat fixed" cellspacing="0">
                 <thead>
                     <tr>
-                        <th><?php _e('Imagem', 'corretor-textos-alternativos'); ?></th>
-                        <th><?php _e('Texto Alternativo Atual', 'corretor-textos-alternativos'); ?></th>
-                        <th><?php _e('URL do Post', 'corretor-textos-alternativos'); ?></th>
-                        <th><?php _e('Novo texto alternativo', 'corretor-textos-alternativos'); ?></th>
+                        <th><?php _e('Image', 'corretor-textos-alternativos'); ?></th>
+                        <th><?php _e('Current Alternative Text', 'corretor-textos-alternativos'); ?></th>
+                        <th><?php _e('Post URL', 'corretor-textos-alternativos'); ?></th>
+                        <th><?php _e('New alt text', 'corretor-textos-alternativos'); ?></th>
                     </tr>
                 </thead>
                 <tbody id="cta-results-table-body">
-                    <!-- Content will be loaded via AJAX -->
                 </tbody>
             </table>
             <div class="cta-pagination">
-                <!-- Pagination controls will be loaded via AJAX -->
             </div>
         </div>
     </div>
@@ -222,7 +212,6 @@ function cta_scan_images() {
 
     if (!empty($posts)) {
         foreach ($posts as $post) {
-            // Buscar imágenes en el contenido del post
             if (preg_match_all('/<img[^>]+>/i', $post->post_content, $result)) {
                 foreach ($result[0] as $img_tag) {
                     if (preg_match('/src="([^"]+)/i', $img_tag, $src)) {
@@ -232,7 +221,6 @@ function cta_scan_images() {
                             $alt = str_ireplace('alt="', '', $alt_text[0]);
                         }
 
-                        // Verificar si la imagen ya existe en la tabla
                         $existing_image = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE image_url = %s", $src));
                         if ($existing_image == 0) {
                             $wpdb->insert(
@@ -248,7 +236,6 @@ function cta_scan_images() {
                 }
             }
 
-            // Buscar imágenes adjuntas en productos de WooCommerce
             if ($post->post_type === 'product') {
                 $product_gallery_ids = get_post_meta($post->ID, '_product_image_gallery', true);
                 if (!empty($product_gallery_ids)) {
