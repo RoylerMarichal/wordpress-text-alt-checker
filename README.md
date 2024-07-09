@@ -1,0 +1,1 @@
+This plugin allows you to analyze all the images that are being used in posts and products to find all the images and show you the ones that do not have alternative text, giving you the possibility to fix it on the spot.
